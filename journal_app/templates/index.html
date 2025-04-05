@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Journal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>📝 My Journal</h1>
+        <textarea id="journalEntry" placeholder="Write your thoughts here..."></textarea>
+        <button onclick="saveEntry()">Save Entry</button>
+
+        <h2>📚 Past Entries</h2>
+        <div id="entriesContainer"></div>
+    </div>
+
+    <script>
+        function saveEntry() {
+            const content = document.getElementById('journalEntry').value;
+            if (!content.trim()) return alert("Please write something before saving.");
+            fetch('/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('journalEntry').value = '';
+                    loadEntries();
+                }
+            });
+        }
+
+        function loadEntries() {
+            fetch('/entries')
+                .then(res => res.json())
+                .then(entries => {
+                    const container = document.getElementById('entriesContainer');
+                    container.innerHTML = '';
+                    entries.forEach(entry => {
+                        const div = document.createElement('div');
+                        div.className = 'entry';
+                        div.innerHTML = `
+                            <p>${entry[1]}</p>
+                            <span class="timestamp">${entry[2]}</span>
+                        `;
+                        container.appendChild(div);
+                    });
+                });
+        }
+
+        window.onload = loadEntries;
+    </script>
+</body>
+</html>
